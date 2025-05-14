@@ -7,7 +7,7 @@ def stream_users_in_batches(batch_size):
     connection = mysql.connector.connect(
         host="localhost",
         user="root",
-        password="root",
+        password="Simbakemaly@90",
         database="ALX_prodev",
         consume_results=True
     )
@@ -28,6 +28,6 @@ def batch_processing(batch_size):
     """Function to process user data in batches."""
     for batch in stream_users_in_batches(batch_size):
         for user in batch:
-            print(user)
+            return user
 
 
