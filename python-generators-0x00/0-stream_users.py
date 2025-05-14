@@ -1,26 +1,6 @@
 #!/usr/bin/python3
 
 import mysql.connector
-from contextlib import contextmanager
-
-@contextmanager
-def connect_to_prodev():
-    """Context manager to connect to 'ALX_prodev' database."""
-    connection = None
-    try:
-        connection = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="root",
-            database="ALX_prodev"
-        )
-        yield connection
-    except mysql.connector.Error as err:
-        print(f"Database connection error: {err}")
-        yield None
-    finally:
-        if connection and connection.is_connected():
-            connection.close()
 
 def stream_users():
     """Generator that streams rows from the 'user_data' table."""
