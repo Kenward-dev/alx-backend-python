@@ -1,6 +1,7 @@
 import uuid
 from django.db import models
-from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.base_user import BaseUserManager
+from django.contrib.auth.models import AbstractUser
 
 class CustomUserManager(BaseUserManager):
     """Custom user model manager for creating users and superusers."""
@@ -26,7 +27,7 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
-class User(AbstractBaseUser):
+class User(AbstractUser):
     """Custom user model with email as the unique identifier."""
     user_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(unique=True)

@@ -10,4 +10,5 @@ router.register(r'messages', MessageViewSet, basename='message')
 
 urlpatterns = [
     path('', include(router.urls)),
+    path('', include(conversations_router.urls)),
 ]
