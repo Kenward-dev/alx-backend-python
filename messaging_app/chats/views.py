@@ -1,24 +1,26 @@
 from rest_framework import viewsets, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters
 from .models import User, Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
-    """ViewSet for listing conversations and creating new ones."""
-    
     serializer_class = ConversationSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
+    filterset_fields = ['created_at']
+    ordering_fields = ['created_at']
+    ordering = ['-created_at']
     
     def get_queryset(self):
-        """Return conversations where the authenticated user is a participant."""
         return Conversation.objects.filter(
             participants=self.request.user
         ).prefetch_related('participants').order_by('-created_at')
     
     def create(self, request, *args, **kwargs):
-        """Create a new conversation with participants."""
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         
@@ -35,13 +37,15 @@ class ConversationViewSet(viewsets.ModelViewSet):
 
 
 class MessageViewSet(viewsets.ModelViewSet):
-    """ViewSet for listing messages and sending new ones."""
-    
     serializer_class = MessageSerializer
     permission_classes = [IsAuthenticated]
+    filter_backends = [DjangoFilterBackend, filters.OrderingFilter, filters.SearchFilter]
+    filterset_fields = ['conversation__conversation_id', 'sent_at']
+    search_fields = ['message_body']
+    ordering_fields = ['sent_at']
+    ordering = ['-sent_at']
     
     def get_queryset(self):
-        """Return messages from conversations where user is a participant."""
         user_conversations = Conversation.objects.filter(
             participants=self.request.user
         ).values_list('conversation_id', flat=True)
@@ -51,7 +55,6 @@ class MessageViewSet(viewsets.ModelViewSet):
         ).select_related('sender', 'conversation').order_by('-sent_at')
     
     def create(self, request, *args, **kwargs):
-        """Send a new message to an existing conversation."""
         data = request.data.copy()
         data['sender_id'] = request.user.user_id
         
@@ -74,4 +77,3 @@ class MessageViewSet(viewsets.ModelViewSet):
         serializer.save()
         
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-        
