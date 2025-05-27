@@ -1,15 +1,16 @@
 from rest_framework import serializers
 from django.contrib.auth.password_validation import validate_password
-from rest_framework.exceptions import ValidationError
 from .models import User, Conversation, Message
 
 
 class UserSerializer(serializers.ModelSerializer):
     """Serializer for the User model."""
     
-    full_name = serializers.SerializerMethodField()
     password = serializers.CharField(write_only=True, validators=[validate_password])
     confirm_password = serializers.CharField(write_only=True)
+    user_id = serializers.UUIDField(read_only=True)
+    date_joined = serializers.DateTimeField(read_only=True)
+    last_login = serializers.DateTimeField(read_only=True)
     
     class Meta:
         model = User
@@ -28,7 +29,7 @@ class UserSerializer(serializers.ModelSerializer):
         """Validate password confirmation."""
         if 'password' in attrs and 'confirm_password' in attrs:
             if attrs['password'] != attrs['confirm_password']:
-                raise ValidationError("Passwords do not match.")
+                raise serializers.ValidationError("Passwords do not match.")
         return attrs
 
     def create(self, validated_data):
@@ -81,10 +82,10 @@ class ConversationSerializer(serializers.ModelSerializer):
     def validate_participant_ids(self, value):
         """Validate participant IDs."""
         if not value:
-            raise ValidationError("At least one participant is required.")
+            raise serializers.ValidationError("At least one participant is required.")
         
         if len(value) < 2:
-            raise ValidationError("A conversation must have at least 2 participants.")
+            raise serializers.ValidationError("A conversation must have at least 2 participants.")
         
         return value
 
@@ -125,7 +126,7 @@ class MessageSerializer(serializers.ModelSerializer):
         try:
             conversation = Conversation.objects.get(conversation_id=value)
         except Conversation.DoesNotExist:
-            raise ValidationError("Conversation not found.")
+            raise serializers.ValidationError("Conversation not found.")
         
         return value
 
@@ -141,7 +142,7 @@ class MessageSerializer(serializers.ModelSerializer):
             try:
                 sender = User.objects.get(user_id=sender_id)
             except User.DoesNotExist:
-                raise ValidationError("Sender not found.")
+                raise serializers.ValidationError("Sender not found.")
         
         message = Message.objects.create(
             conversation=conversation,
