@@ -19,10 +19,10 @@ class TestGithubOrgClient(unittest.TestCase):
         """Test that GithubOrgClient.org returns the correct value."""
         test_payload = {"org": "test"}
         mock_get_json.return_value = test_payload
-        
+
         client = GithubOrgClient(org_name)
         result = client.org
-        
+
         expected_url = f"https://api.github.com/orgs/{org_name}"
         mock_get_json.assert_called_once_with(expected_url)
         self.assertEqual(result, test_payload)
@@ -30,7 +30,7 @@ class TestGithubOrgClient(unittest.TestCase):
     def test_public_repos_url(self):
         """Test that _public_repos_url returns the expected URL."""
         test_payload = {"repos_url": "https://api.github.com/orgs/test/repos"}
-        
+
         with patch.object(GithubOrgClient, 'org', new_callable=PropertyMock) as mock_org:
             mock_org.return_value = test_payload
             client = GithubOrgClient("test")
@@ -46,16 +46,21 @@ class TestGithubOrgClient(unittest.TestCase):
             {"name": "repo3"},
         ]
         mock_get_json.return_value = test_payload
-        
-        with patch.object(GithubOrgClient, '_public_repos_url', 
-                         new_callable=PropertyMock) as mock_repos_url:
+
+        with patch.object(
+            GithubOrgClient,
+            '_public_repos_url',
+            new_callable=PropertyMock
+        ) as mock_repos_url:
             mock_repos_url.return_value = "https://api.github.com/orgs/test/repos"
             client = GithubOrgClient("test")
             result = client.public_repos()
-            
+
             expected_repos = ["repo1", "repo2", "repo3"]
             self.assertEqual(result, expected_repos)
-            mock_get_json.assert_called_once_with("https://api.github.com/orgs/test/repos")
+            mock_get_json.assert_called_once_with(
+                "https://api.github.com/orgs/test/repos"
+            )
             mock_repos_url.assert_called_once()
 
     @parameterized.expand([
@@ -85,14 +90,14 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         def side_effect(url):
             """Side effect function to return appropriate payload based on URL."""
             mock_response = Mock()
-            
+
             if url == "https://api.github.com/orgs/google":
                 mock_response.json.return_value = cls.org_payload
             elif url == cls.org_payload["repos_url"]:
                 mock_response.json.return_value = cls.repos_payload
             else:
                 mock_response.json.return_value = {}
-                
+
             return mock_response
 
         cls.get_patcher = patch('requests.get', side_effect=side_effect)
@@ -108,8 +113,7 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         client = GithubOrgClient("google")
         result = client.public_repos()
         self.assertEqual(result, self.expected_repos)
-        
-        # Verify expected calls were made
+
         self.mock_get.assert_any_call("https://api.github.com/orgs/google")
         self.mock_get.assert_any_call(self.org_payload["repos_url"])
 
@@ -118,8 +122,7 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         client = GithubOrgClient("google")
         result = client.public_repos(license="apache-2.0")
         self.assertEqual(result, self.apache2_repos)
-        
-        # Verify expected calls were made without strict count check
+
         self.mock_get.assert_any_call("https://api.github.com/orgs/google")
         self.mock_get.assert_any_call(self.org_payload["repos_url"])
 
