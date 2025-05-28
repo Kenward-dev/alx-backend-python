@@ -31,8 +31,9 @@ class TestGithubOrgClient(unittest.TestCase):
         """Test that _public_repos_url returns the expected URL."""
         test_payload = {"repos_url": "https://api.github.com/orgs/test/repos"}
 
-        with patch.object(GithubOrgClient, 'org', 
-            new_callable=PropertyMock) as mock_org:
+        with patch.object(GithubOrgClient, 'org',
+                          new_callable=PropertyMock
+                          ) as mock_org:
             mock_org.return_value = test_payload
             client = GithubOrgClient("test")
             result = client._public_repos_url
@@ -91,7 +92,7 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
         """Set up class method to start patcher for requests.get."""
         def side_effect(url):
             """
-            Side effect function to return appropriate payload 
+            Side effect function to return appropriate payload
             based on URL."""
             mock_response = Mock()
 
