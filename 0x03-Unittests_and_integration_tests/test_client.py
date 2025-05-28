@@ -31,7 +31,8 @@ class TestGithubOrgClient(unittest.TestCase):
         """Test that _public_repos_url returns the expected URL."""
         test_payload = {"repos_url": "https://api.github.com/orgs/test/repos"}
 
-        with patch.object(GithubOrgClient, 'org', new_callable=PropertyMock) as mock_org:
+        with patch.object(GithubOrgClient, 'org', 
+            new_callable=PropertyMock) as mock_org:
             mock_org.return_value = test_payload
             client = GithubOrgClient("test")
             result = client._public_repos_url
@@ -52,7 +53,8 @@ class TestGithubOrgClient(unittest.TestCase):
             '_public_repos_url',
             new_callable=PropertyMock
         ) as mock_repos_url:
-            mock_repos_url.return_value = "https://api.github.com/orgs/test/repos"
+            mock_repos_url.return_value = (
+                "https://api.github.com/orgs/test/repos")
             client = GithubOrgClient("test")
             result = client.public_repos()
 
@@ -88,7 +90,9 @@ class TestIntegrationGithubOrgClient(unittest.TestCase):
     def setUpClass(cls):
         """Set up class method to start patcher for requests.get."""
         def side_effect(url):
-            """Side effect function to return appropriate payload based on URL."""
+            """
+            Side effect function to return appropriate payload 
+            based on URL."""
             mock_response = Mock()
 
             if url == "https://api.github.com/orgs/google":
