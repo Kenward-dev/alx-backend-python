@@ -6,6 +6,7 @@ from rest_framework import filters
 from .models import User, Conversation, Message
 from .serializers import ConversationSerializer, MessageSerializer
 from .permissions import IsParticipantOfConversation
+from .pagination import MessagesPagination
 
 
 class ConversationViewSet(viewsets.ModelViewSet):
@@ -45,6 +46,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     search_fields = ['message_body']
     ordering_fields = ['sent_at']
     ordering = ['-sent_at']
+    pagination_class = MessagesPagination
     
     def get_queryset(self):
         user_conversations = Conversation.objects.filter(
