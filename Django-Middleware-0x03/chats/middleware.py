@@ -3,6 +3,7 @@ from datetime import datetime
 
 from rest_framework import status
 from rest_framework.response import Response
+from collections import defaultdict, deque
 
 class RequestLoggingMiddleware:
     """
@@ -56,4 +57,66 @@ class RestrictAccessByTimeMiddleware:
         return Response(
             "Access is restricted to (9 PM - 6 AM).",
             status=status.HTTP_403_FORBIDDEN
+        )
+
+class OffensiveLanguageMiddleware:
+    """
+    Middleware to limit POST requests (messages) per IP address.
+    Allows maximum 5 messages per minute per IP address.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+        self.ip_message_tracker = defaultdict(deque)
+        self.message_limit = 5 
+        self.time_window = datetime.timedelta(minutes=1) 
+
+    def __call__(self, request):
+        if request.method == 'POST':
+            client_ip = self._get_client_ip(request)
+            
+            if self._is_rate_limited(client_ip):
+                return self._deny_access()
+        
+        response = self.get_response(request)
+        return response
+
+    def _get_client_ip(self, request):
+        """
+        Get the client's IP address from the request.
+        """
+        x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded_for:
+            ip = x_forwarded_for.split(',')[0]
+        else:
+            ip = request.META.get('REMOTE_ADDR')
+        return ip
+
+    def _is_rate_limited(self, ip_address):
+        """
+        Check if the IP address has exceeded the rate limit.
+        Returns True if rate limited, False otherwise.
+        """
+        current_time = datetime.now()
+        ip_timestamps = self.ip_message_tracker[ip_address]
+        
+        while ip_timestamps and current_time - ip_timestamps[0] > self.time_window:
+            ip_timestamps.popleft()
+        
+        if len(ip_timestamps) >= self.message_limit:
+            return True
+        
+        ip_timestamps.append(current_time)
+        return False
+
+    def _deny_access(self):
+        """
+        Return a 429 Too Many Requests response when rate limited.
+        """
+        return Response(
+            {
+                "error": "Rate limit exceeded",
+                "message": f"Maximum {self.message_limit} messages per minute allowed",
+                "retry_after": "60 seconds"
+            },
+            status=status.HTTP_429_TOO_MANY_REQUESTS
         )
