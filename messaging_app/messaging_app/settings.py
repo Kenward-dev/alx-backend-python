@@ -139,6 +139,8 @@ REST_FRAMEWORK = {
         'rest_framework.filters.OrderingFilter',
         'rest_framework.filters.SearchFilter',
     ],
+    'DEFAULT_PAGINATION_CLASS': 'chats.pagination.MessagesPagination',
+    'PAGE_SIZE': 20, 
 }
 
 AUTH_USER_MODEL = 'chats.User'
