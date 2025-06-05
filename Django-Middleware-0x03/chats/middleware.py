@@ -120,3 +120,24 @@ class OffensiveLanguageMiddleware:
             },
             status=status.HTTP_429_TOO_MANY_REQUESTS
         )
+
+class RolepermissionMiddleware:
+    """
+    Middleware to check if the user has the required role for the request.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        if hasattr(request, 'user') and request.user.is_authenticated:
+            user = request.user
+            user_role = getattr(user, 'role', None)  
+            
+            if user_role not in ['admin', 'moderator']:
+                return Response(
+                    {"error": "You do not have permission to perform this action."},
+                    status=status.HTTP_403_FORBIDDEN
+                )
+        
+        response = self.get_response(request)
+        return response
