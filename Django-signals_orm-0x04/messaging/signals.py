@@ -28,8 +28,8 @@ def create_message_history(sender, instance, **kwargs):
         )
 
 @receiver(post_delete, sender=User)
-def delete_user_notifications(sender, instance, **kwargs):
+def delete_user_messages(sender, instance, **kwargs):
     """
-    Signal to delete all notifications related to a User when the User is deleted.
+    Signal to delete all messages related to a User when the User is deleted.
     """
-    Notification.objects.filter(user=instance).delete()
+    Message.objects.filter(user=instance).delete()
