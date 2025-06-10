@@ -1,18 +1,17 @@
 from django.views import View
-from .models import Message
 from django.contrib.auth.models import get_user_model
 from django.http import JsonResponse
 
 User = get_user_model()
 
-class MessageDeleteView(View):
+class DeleteUser(View):
     """
-    View to handle the deletion of a message.
+    View to delete a user and all their related messages.
     """
-    def post(self, request, message_id):
+    def post(self, request, user_id):
         try:
-            message = Message.objects.get(id=message_id, receiver=request.user)
-            message.delete()
-            return JsonResponse({'status': 'success', 'message': 'Message deleted successfully.'}, status=204)
-        except Message.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Message not found.'}, status=404)
+            user = User.objects.get(id=user_id)
+            user.delete()
+            return JsonResponse({'status': 'success', 'message': 'User deleted successfully.'})
+        except User.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User not found.'}, status=404)
