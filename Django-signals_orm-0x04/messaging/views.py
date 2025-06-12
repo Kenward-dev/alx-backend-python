@@ -19,8 +19,7 @@ def get_threaded_messages(request):
     """
     View to get all threaded messages for the user
     """
-    user = request.user
     return Message.objects.filter(
-        sender=user,
+        sender=request.user,
         parent_message=None
     ).select_related('sender', 'receiver').prefetch_related('replies__sender', 'replies__receiver').order_by('-timestamp')
