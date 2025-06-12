@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from .managers import UnreadMessagesManager
 
 class Message(models.Model):
     sender = models.ForeignKey(User, related_name='sent_messages', on_delete=models.CASCADE)
@@ -9,6 +10,10 @@ class Message(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     edited = models.BooleanField(default=False)
     parent_message = models.ForeignKey('self', null=True, blank=True, related_name='replies', on_delete=models.CASCADE)
+    unread = models.BooleanField(default=True)
+
+    objects = models.Manager()
+    unread_messages = UnreadMessagesManager()
 
     def __str__(self):
         return f"Message from {self.sender.username} to {self.receiver.username}: {self.subject}"

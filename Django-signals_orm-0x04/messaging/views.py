@@ -23,3 +23,15 @@ def get_threaded_messages(request):
         sender=request.user,
         parent_message=None
     ).select_related('sender', 'receiver').prefetch_related('replies__sender', 'replies__receiver').order_by('-timestamp')
+
+def get_unread_messages(request):
+    """
+    View to get all unread messages for the user
+    """
+    unread_messages = Message.unread_messages.for_user(request.user)
+    return JsonResponse({
+        'status': 'success',
+        'unread_messages': list(unread_messages.values(
+            'id', 'subject', 'content', 'timestamp', 'sender__username', 'receiver__username'
+        ))
+    })
