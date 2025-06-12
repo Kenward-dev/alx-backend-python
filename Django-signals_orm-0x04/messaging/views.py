@@ -28,7 +28,9 @@ def get_unread_messages(request):
     """
     View to get all unread messages for the user
     """
-    unread_messages = Message.unread_messages.for_user(request.user)
+    unread_messages = Message.unread.unread_for_user(request.user).only(
+            'id', 'subject', 'content', 'timestamp', 'sender_id', 'receiver_id'
+            )
     return JsonResponse({
         'status': 'success',
         'unread_messages': list(unread_messages.values(

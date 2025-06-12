@@ -13,7 +13,7 @@ class Message(models.Model):
     unread = models.BooleanField(default=True)
 
     objects = models.Manager()
-    unread_messages = UnreadMessagesManager()
+    unread = UnreadMessagesManager()
 
     def __str__(self):
         return f"Message from {self.sender.username} to {self.receiver.username}: {self.subject}"

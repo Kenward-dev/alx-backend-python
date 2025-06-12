@@ -11,11 +11,9 @@ class UnreadMessagesManager(models.Manager):
     def get_queryset(self):
         return MessageQuerySet(self.model, using=self._db)
 
-    def for_user(self, user):
+    def unread_for_user(self, user):
         return self.get_queryset().filter(
             receiver=user,
             unread=True, 
             parent_message=None
-        ).select_related('sender', 'receiver').only(
-            'id', 'subject', 'content', 'timestamp', 'sender_id', 'receiver_id'
-            )
+        ).select_related('sender', 'receiver')
