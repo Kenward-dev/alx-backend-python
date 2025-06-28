@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+DEPLOYMENT_NAME="django-messaging-app"
+SERVICE_NAME="django-messaging-service"
+
+echo "Scaling deployment to 3 replicas..."
+kubectl scale deployment $DEPLOYMENT_NAME --replicas=3
+
+echo "Waiting for rollout to complete..."
+kubectl rollout status deployment $DEPLOYMENT_NAME
+
+echo "Verifying pods are running..."
+kubectl get pods -l app=$DEPLOYMENT_NAME
+
+echo "Setting up port forwarding..."
+kubectl port-forward service/$SERVICE_NAME 8080:80 &
+PORT_FORWARD_PID=$!
+sleep 5
+
+echo "Performing load test with wrk..."
+wrk -t2 -c10 -d30s http://localhost:8080/
+
+echo "Monitoring resource usage..."
+kubectl top nodes
+kubectl top pods -l app=$DEPLOYMENT_NAME
+
+echo "Final pod status:"
+kubectl get pods -l app=$DEPLOYMENT_NAME
+
+kill $PORT_FORWARD_PID
