@@ -1,0 +1,38 @@
+#!/bin/bash
+
+set -e
+
+echo "Setting up port forwarding for testing..."
+kubectl port-forward service/django-messaging-service 8080:80 &
+PORT_FORWARD_PID=$!
+sleep 5
+
+echo "Starting continuous testing in background..."
+while true; do
+    curl -s -o /dev/null -w "%{http_code}" http://localhost:8080 2>/dev/null || echo "FAIL"
+    sleep 1
+done &
+CURL_PID=$!
+
+echo "Applying updated deployment file..."
+kubectl apply -f blue_deployment.yaml
+
+echo "Monitoring rollout status..."
+kubectl rollout status deployment/django-messaging-blue
+
+echo "Waiting for rollout to complete..."
+sleep 10
+
+echo "Stopping continuous testing..."
+kill $CURL_PID
+
+echo "Verifying rolling update is complete..."
+kubectl get pods -l app=django-messaging-app,version=blue
+
+echo "Checking deployment status..."
+kubectl get deployment django-messaging-blue
+
+echo "Checking pod details..."
+kubectl describe pods -l app=django-messaging-app,version=blue | grep -E "Image:|Ready:|Status:"
+
+kill $PORT_FORWARD_PID
