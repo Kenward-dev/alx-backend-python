@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'python:3.9-slim'
-            args '-u root:root'
-        }
-    }
+    agent any
     
     environment {
         APP_DIR = 'messaging_app'
@@ -16,6 +11,15 @@ pipeline {
                 git credentialsId: 'github-credentials', 
                     url: 'https://github.com/Kenward-dev/alx-backend-python.git',
                     branch: 'main'
+            }
+        }
+        
+        stage('Install Python') {
+            steps {
+                sh '''
+                    sudo apt-get update
+                    apt-get install -y python3 python3-pip python3-venv
+                '''
             }
         }
         
