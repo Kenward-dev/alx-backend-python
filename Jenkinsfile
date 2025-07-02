@@ -1,64 +1,39 @@
 pipeline {
-    agent any
-    
-    environment {
-        APP_DIR = 'messaging_app'
+    agent {
+        docker {
+            image 'python:3.10'
+        }
     }
-    
+
     stages {
         stage('Checkout') {
             steps {
-                git credentialsId: 'github-credentials', 
-                    url: 'https://github.com/Kenward-dev/alx-backend-python.git',
-                    branch: 'main'
+                checkout scm
             }
         }
-        
+
         stage('Install Python') {
             steps {
-                sh '''
-                    python3 --version || echo "Python3 not found"
-                    pip3 --version || echo "pip3 not found"
-                    
-                    apt-get update || echo "Cannot update packages"
-                    apt-get install -y python3 python3-pip python3-venv || echo "Cannot install packages, trying with existing Python"
-                '''
+                sh 'echo "Python already available in Docker image"'
             }
         }
-        
+
         stage('Setup Python Environment') {
             steps {
-                dir("${APP_DIR}") {
-                    sh '''
-                        python3 -m venv venv
-                        . venv/bin/activate
-                        pip install pytest
-                    '''
-                }
+                sh 'pip install -r requirements.txt'
             }
         }
-        
+
         stage('Run Tests') {
             steps {
-                dir("${APP_DIR}") {
-                    sh '''
-                        . venv/bin/activate
-                        pytest test_simple.py -v -s --junitxml=test-results.xml
-                    '''
-                }
+                sh 'pytest --html=report.html'
             }
         }
-        
+
         stage('Generate Report') {
             steps {
-                publishTestResults testResultsPattern: "${APP_DIR}/test-results.xml"
+                sh 'cat report.html'
             }
-        }
-    }
-    
-    post {
-        success {
-            echo "All tests passed successfully!"
         }
     }
 }
