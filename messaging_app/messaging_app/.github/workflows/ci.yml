@@ -14,7 +14,7 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: password
           MYSQL_DATABASE: test_db
-    
+
     steps:
     - uses: actions/checkout@v4
     
@@ -26,9 +26,22 @@ jobs:
     - name: Install dependencies
       run: |
         pip install -r requirements.txt
+        pip install flake8 coverage
     
-    - name: Run tests
+    - name: Lint with flake8
       run: |
-        python manage.py test
+        flake8 .
+    
+    - name: Run tests with coverage
+      run: |
+        coverage run --source='.' manage.py test
+        coverage report
+        coverage html
       env:
         DATABASE_URL: mysql://root:password@127.0.0.1:3306/test_db
+    
+    - name: Upload coverage reports
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: cov-report/
