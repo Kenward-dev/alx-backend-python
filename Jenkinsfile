@@ -17,8 +17,11 @@ pipeline {
         stage('Install Python') {
             steps {
                 sh '''
-                    sudo apt-get update
-                    apt-get install -y python3 python3-pip python3-venv
+                    python3 --version || echo "Python3 not found"
+                    pip3 --version || echo "pip3 not found"
+                    
+                    apt-get update || echo "Cannot update packages"
+                    apt-get install -y python3 python3-pip python3-venv || echo "Cannot install packages, trying with existing Python"
                 '''
             }
         }
